@@ -3,355 +3,666 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Gas Testers Tracker</title>
+<title>Gas Testers</title>
+<link rel="manifest" href="manifest.json">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  :root{
-    --bg:#111418; --card:#1b1f26; --border:#2a2f38; --text:#e8eaed; --muted:#8a919c;
-    --accent:#3b82f6; --green:#22c55e; --orange:#f59e0b; --red:#ef4444;
-  }
-  body.light{
-    --bg:#f4f5f7; --card:#ffffff; --border:#dfe3e8; --text:#1a1d21; --muted:#5b6470;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:var(--bg);color:var(--text);padding-bottom:80px;transition:background .2s,color .2s;}
-  header{padding:16px;display:flex;justify-content:space-between;align-items:center;
-    border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;}
-  header h1{font-size:18px;margin:0;}
-  #themeBtn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;
-    padding:6px 10px;font-size:16px;}
-  main{padding:16px;max-width:520px;margin:0 auto;}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
-  .tabs{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);
-    border-top:1px solid var(--border);z-index:10;}
-  .tab{flex:1;padding:12px 4px;text-align:center;font-size:11px;color:var(--muted);
-    border:none;background:none;cursor:pointer;}
-  .tab.active{color:var(--accent);font-weight:600;}
-  .tab .ic{font-size:20px;display:block;}
-  .view{display:none;}
-  .view.active{display:block;}
-  button.primary{width:100%;padding:14px;font-size:16px;font-weight:600;border:none;border-radius:10px;
-    background:var(--accent);color:#fff;cursor:pointer;}
-  button.secondary{width:100%;padding:12px;font-size:14px;border:1px solid var(--border);border-radius:10px;
-    background:transparent;color:var(--text);cursor:pointer;margin-top:8px;}
-  input,textarea{width:100%;padding:12px;font-size:15px;border-radius:8px;border:1px solid var(--border);
-    background:var(--bg);color:var(--text);margin-bottom:10px;}
-  label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;}
-  #reader{width:100%;border-radius:12px;overflow:hidden;margin-bottom:10px;}
-  .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
-  .st-inside{background:rgba(245,158,11,.15);color:var(--orange);}
-  .st-outside{background:rgba(34,197,94,.15);color:var(--green);}
-  .st-unknown{background:rgba(139,146,156,.15);color:var(--muted);}
-  .dash-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;
-    border-bottom:1px solid var(--border);}
-  .dash-item:last-child{border-bottom:none;}
-  .dash-tag{font-weight:700;font-size:15px;}
-  .dash-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-  .days-badge{font-size:12px;padding:3px 8px;border-radius:6px;background:rgba(59,130,246,.15);color:var(--accent);}
-  .days-badge.warn{background:rgba(239,68,68,.15);color:var(--red);}
-  .hist-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
-  .hist-row:last-child{border-bottom:none;}
-  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card);
-    border:1px solid var(--border);padding:10px 18px;border-radius:20px;font-size:14px;
-    box-shadow:0 4px 14px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;}
-  .toast.show{opacity:1;}
-  #qrPrintArea{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
-  .qrLabel{text-align:center;font-size:11px;border:1px dashed var(--border);padding:8px;border-radius:8px;}
-  h2{font-size:16px;margin:0 0 12px 0;}
-  .empty{text-align:center;color:var(--muted);padding:30px 0;font-size:14px;}
-  @media print{
-    header,.tabs,.card:not(.printable){display:none !important;}
-    body{background:#fff;color:#000;padding:0;}
-    #qrPrintArea{display:flex;}
-  }
+:root{
+  --bg:#0f1117;--card:#1a1d27;--card2:#22263a;--border:#2d3248;
+  --text:#e8eaed;--muted:#7a8299;--accent:#4f7cff;
+  --green:#22c55e;--orange:#f59e0b;--red:#ef4444;--purple:#a78bfa;
+}
+body.light{
+  --bg:#f0f2f8;--card:#ffffff;--card2:#f5f6fa;--border:#dce0ec;
+  --text:#1a1d2e;--muted:#6b7492;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);padding-bottom:72px;transition:background .2s,color .2s;}
+
+/* ── HEADER ── */
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
+  background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;}
+header h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.3px;}
+.hbtns{display:flex;gap:8px;}
+.ibtn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;
+  padding:6px 10px;font-size:15px;cursor:pointer;}
+
+/* ── TABS ── */
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);
+  border-top:1px solid var(--border);z-index:20;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 10px;
+  font-size:10px;color:var(--muted);border:none;background:none;cursor:pointer;gap:2px;}
+.tab .ic{font-size:21px;}
+.tab.active{color:var(--accent);font-weight:600;}
+
+/* ── LAYOUT ── */
+main{padding:14px;max-width:540px;margin:0 auto;}
+.view{display:none;}.view.active{display:block;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+h2{margin:0 0 14px;font-size:15px;font-weight:700;}
+h3{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── FORM ── */
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;}
+input,select,textarea{width:100%;padding:11px 12px;font-size:14px;border-radius:9px;
+  border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:10px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:var(--card);}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:13px;font-size:14px;font-weight:600;border:none;border-radius:10px;cursor:pointer;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);margin-top:8px;}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+.btn-sm{width:auto;padding:6px 12px;font-size:12px;border-radius:7px;}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.b-inside{background:rgba(245,158,11,.15);color:var(--orange);}
+.b-outside{background:rgba(34,197,94,.15);color:var(--green);}
+.b-new{background:rgba(139,146,156,.12);color:var(--muted);}
+.b-dept{background:rgba(79,124,255,.13);color:var(--accent);}
+.b-days{padding:4px 9px;border-radius:7px;font-size:12px;font-weight:700;
+  background:rgba(79,124,255,.12);color:var(--accent);}
+.b-days.warn{background:rgba(239,68,68,.13);color:var(--red);}
+
+/* ── INSTRUMENT CARD (scan result) ── */
+.inst-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.inst-tag{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.inst-sn{font-size:12px;color:var(--muted);margin:2px 0 6px;}
+.inst-row{display:flex;justify-content:space-between;align-items:center;}
+
+/* ── DASHBOARD ITEMS ── */
+.dash-item{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:12px 0;border-bottom:1px solid var(--border);}
+.dash-item:last-child{border-bottom:none;}
+.dash-tag{font-size:16px;font-weight:800;}
+.dash-sn{font-size:11px;color:var(--muted);}
+.dash-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+
+/* ── HISTORY ── */
+.hist-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.hist-row:last-child{border-bottom:none;}
+
+/* ── ADMIN ── */
+.admin-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.atab{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;}
+.atab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.dept-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);
+  border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin:4px;}
+.dept-chip span{font-size:13px;font-weight:600;}
+.inst-row-admin{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border);}
+.inst-row-admin:last-child{border-bottom:none;}
+.del-btn{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:4px 8px;}
+
+/* ── LOCK SCREEN ── */
+.lock{text-align:center;padding:30px 0;}
+.lock .lock-ic{font-size:48px;margin-bottom:12px;}
+.lock h3{margin:0 0 16px;font-size:16px;}
+
+/* ── QR LABELS ── */
+.label-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 0;}
+.label-card{background:#fff;border:1.5px solid #ccc;border-radius:8px;padding:10px;
+  width:130px;text-align:center;break-inside:avoid;}
+.label-tag{font-size:13px;font-weight:800;color:#000;margin-top:6px;line-height:1.2;}
+.label-sn{font-size:10px;color:#555;margin-top:2px;}
+.label-dept{font-size:10px;color:#2255cc;font-weight:600;margin-top:2px;}
+
+/* ── MISC ── */
+.empty{text-align:center;color:var(--muted);padding:28px 0;font-size:14px;}
+.sep{height:1px;background:var(--border);margin:12px 0;}
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1px solid var(--border);padding:10px 18px;
+  border-radius:20px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.35);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;white-space:nowrap;}
+.toast.show{opacity:1;}
+#reader{width:100%;border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.dept-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.df-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;}
+.df-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+@media print{
+  header,.tabs,.card:not(.printonly){display:none!important;}
+  body{background:#fff;padding:0;}
+  .label-grid{display:flex!important;}
+  .label-card{border:1px solid #999;}
+}
 </style>
 </head>
 <body>
 
 <header>
   <h1>🔧 Gas Testers</h1>
-  <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <div class="hbtns">
+    <button class="ibtn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
 </header>
 
 <main>
 
-  <!-- ΣΑΡΩΣΗ -->
-  <div class="view active" id="view-scan">
-    <div class="card">
-      <h2>Σάρωση QR</h2>
-      <div id="reader"></div>
-      <button class="primary" id="scanToggleBtn" onclick="toggleScanner()">Έναρξη Κάμερας</button>
-      <button class="secondary" onclick="manualEntry()">✍️ Χειροκίνητη καταχώρηση tag</button>
-    </div>
+<!-- ════ ΣΑΡΩΣΗ ════ -->
+<div class="view active" id="view-scan">
+  <div class="card">
+    <h2>Σάρωση QR</h2>
+    <div id="reader"></div>
+    <button class="btn btn-primary" id="scanBtn" onclick="toggleScanner()">📷 Έναρξη Κάμερας</button>
+    <button class="btn btn-secondary" onclick="manualTag()">✍️ Χειροκίνητη εισαγωγή TAG</button>
+  </div>
 
-    <div class="card" id="entryFormCard" style="display:none;">
-      <h2 id="entryFormTitle">Καταχώρηση</h2>
-      <label>Κωδικός οργάνου (TAG)</label>
-      <input id="fTag" readonly>
-      <div id="statusPreview" style="margin-bottom:10px;"></div>
-      <label>Όνομα χειριστή *</label>
-      <input id="fOperator" placeholder="π.χ. Παπαδόπουλος Γ.">
-      <label>Σημειώσεις (προαιρετικό)</label>
-      <textarea id="fNotes" rows="2" placeholder="π.χ. βλάβη αισθητήρα O2"></textarea>
-      <button class="primary" id="submitBtn" onclick="submitEntry()">Καταχώρηση</button>
-      <button class="secondary" onclick="cancelEntry()">Άκυρο</button>
+  <div class="card" id="scanResult" style="display:none;">
+    <div class="inst-card">
+      <div class="inst-row">
+        <div class="inst-tag" id="rTag">-</div>
+        <span class="badge" id="rBadge">-</span>
+      </div>
+      <div class="inst-sn" id="rSN"></div>
+      <div id="rDept"></div>
+      <div class="sep"></div>
+      <div id="rLastEntry" style="font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div id="nextActionLabel" style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent);"></div>
+    <label>Όνομα χειριστή *</label>
+    <input id="fOperator" placeholder="Ονοματεπώνυμο">
+    <label>Σημειώσεις</label>
+    <textarea id="fNotes" rows="2" placeholder="Προαιρετικό"></textarea>
+    <button class="btn btn-primary" id="submitBtn" onclick="submitEntry()">✅ Καταχώρηση</button>
+    <button class="btn btn-secondary" onclick="closeScanResult()">✖ Άκυρο</button>
+  </div>
+</div>
+
+<!-- ════ ΠΙΝΑΚΑΣ ════ -->
+<div class="view" id="view-dash">
+  <div class="card">
+    <h2>Όργανα προς επισκευή</h2>
+    <div class="dept-filter" id="dashFilter"></div>
+    <div id="dashList"><div class="empty">Φόρτωση...</div></div>
+    <button class="btn btn-secondary" onclick="loadDashboard()" style="margin-top:10px;">🔄 Ανανέωση</button>
+  </div>
+</div>
+
+<!-- ════ ΙΣΤΟΡΙΚΟ ════ -->
+<div class="view" id="view-history">
+  <div class="card">
+    <h2>Ιστορικό οργάνου</h2>
+    <label>TAG οργάνου</label>
+    <input id="histTag" placeholder="π.χ. ΧΗΜ-1" oninput="this.value=this.value.toUpperCase()">
+    <button class="btn btn-primary" onclick="loadHistory()">🔍 Αναζήτηση</button>
+    <div id="histInfo" style="margin-top:10px;"></div>
+    <div id="histList" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- ════ ΕΤΙΚΕΤΕΣ ════ -->
+<div class="view" id="view-labels">
+  <div class="card">
+    <h2>Εκτύπωση ετικετών QR</h2>
+    <label>Επιλογή τμήματος</label>
+    <select id="labelDept" onchange="loadLabelInsts()">
+      <option value="">-- Επιλέξτε τμήμα --</option>
+    </select>
+    <div id="labelInstCount" style="font-size:13px;color:var(--muted);margin-bottom:10px;"></div>
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Εκτύπωση</button>
+  </div>
+  <div class="card printonly">
+    <div class="label-grid" id="labelGrid"></div>
+  </div>
+</div>
+
+<!-- ════ ADMIN ════ -->
+<div class="view" id="view-admin">
+  <!-- LOCK -->
+  <div class="card" id="adminLock">
+    <div class="lock">
+      <div class="lock-ic">🔒</div>
+      <h3>Πρόσβαση Διαχειριστή</h3>
+      <label>Κωδικός</label>
+      <input type="password" id="adminPassInput" placeholder="••••" onkeydown="if(event.key==='Enter')adminLogin()">
+      <button class="btn btn-primary" onclick="adminLogin()">Είσοδος</button>
     </div>
   </div>
 
-  <!-- ΠΙΝΑΚΑΣ -->
-  <div class="view" id="view-dash">
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none;">
     <div class="card">
-      <h2>Όργανα προς επισκευή/βαθμονόμηση</h2>
-      <div id="dashList"><div class="empty">Φόρτωση...</div></div>
-      <button class="secondary" onclick="loadDashboard()">🔄 Ανανέωση</button>
-    </div>
-  </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin:0;">⚙️ Διαχείριση</h2>
+        <button class="ibtn" onclick="adminLogout()">🔒 Έξοδος</button>
+      </div>
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchAdminTab('aDepts',this)">Τμήματα</button>
+        <button class="atab" onclick="switchAdminTab('aInsts',this)">Όργανα</button>
+        <button class="atab" onclick="switchAdminTab('aPass',this)">Κωδικός</button>
+      </div>
 
-  <!-- ΙΣΤΟΡΙΚΟ -->
-  <div class="view" id="view-history">
-    <div class="card">
-      <h2>Ιστορικό οργάνου</h2>
-      <label>Κωδικός οργάνου (TAG)</label>
-      <input id="histTag" placeholder="π.χ. GT-001">
-      <button class="primary" onclick="loadHistory()">Αναζήτηση</button>
-      <div id="histList" style="margin-top:14px;"></div>
-    </div>
-  </div>
+      <!-- ΤΜΗΜΑΤΑ -->
+      <div id="aDepts">
+        <h3>Τμήματα</h3>
+        <div id="deptChips" style="margin-bottom:12px;"></div>
+        <div class="sep"></div>
+        <label>Νέο τμήμα</label>
+        <input id="newDeptName" placeholder="π.χ. ΕΡΓΑΣΤΗΡΙΟ" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-primary btn-sm" onclick="addDept()">Προσθήκη</button>
+      </div>
 
-  <!-- ΕΚΤΥΠΩΣΗ QR -->
-  <div class="view" id="view-print">
-    <div class="card">
-      <h2>Δημιουργία ετικετών QR</h2>
-      <label>Πρόθεμα κωδικού</label>
-      <input id="pPrefix" value="GT-">
-      <label>Αριθμός έναρξης</label>
-      <input id="pStart" type="number" value="1">
-      <label>Πλήθος οργάνων</label>
-      <input id="pCount" type="number" value="10">
-      <button class="primary" onclick="generateLabels()">Δημιουργία</button>
-      <button class="secondary" onclick="window.print()">🖨️ Εκτύπωση</button>
+      <!-- ΟΡΓΑΝΑ -->
+      <div id="aInsts" style="display:none;">
+        <h3>Όργανα</h3>
+        <label>Φίλτρο τμήματος</label>
+        <select id="instFilterDept" onchange="loadAdminInsts()">
+          <option value="">Όλα</option>
+        </select>
+        <div id="adminInstList" style="margin:10px 0;"></div>
+        <div class="sep"></div>
+        <h3>Προσθήκη οργάνου</h3>
+        <label>TAG *</label>
+        <input id="newInstTag" placeholder="π.χ. ΧΗΜ-4" oninput="this.value=this.value.toUpperCase()">
+        <label>S/N</label>
+        <input id="newInstSN" placeholder="π.χ. 2024-0045">
+        <label>Τμήμα *</label>
+        <select id="newInstDept"><option value="">-- Επιλέξτε --</option></select>
+        <button class="btn btn-primary btn-sm" onclick="addInst()">Προσθήκη</button>
+      </div>
+
+      <!-- ΚΩΔΙΚΟΣ -->
+      <div id="aPass" style="display:none;">
+        <h3>Αλλαγή κωδικού</h3>
+        <label>Τρέχων κωδικός</label>
+        <input type="password" id="cpOld" placeholder="••••">
+        <label>Νέος κωδικός</label>
+        <input type="password" id="cpNew" placeholder="Νέος κωδικός">
+        <label>Επαλήθευση</label>
+        <input type="password" id="cpNew2" placeholder="Επανάληψη">
+        <button class="btn btn-primary btn-sm" onclick="doChangePass()">Αλλαγή</button>
+      </div>
     </div>
-    <div class="card printable" id="qrPrintArea"></div>
   </div>
+</div>
 
 </main>
 
+<!-- TABS -->
 <div class="tabs">
-  <button class="tab active" data-view="view-scan" onclick="switchTab('view-scan',this)">
-    <span class="ic">📷</span>Σάρωση</button>
-  <button class="tab" data-view="view-dash" onclick="switchTab('view-dash',this)">
-    <span class="ic">📋</span>Πίνακας</button>
-  <button class="tab" data-view="view-history" onclick="switchTab('view-history',this)">
-    <span class="ic">🕓</span>Ιστορικό</button>
-  <button class="tab" data-view="view-print" onclick="switchTab('view-print',this)">
-    <span class="ic">🏷️</span>Ετικέτες</button>
+  <button class="tab active" onclick="switchTab('view-scan',this)"><span class="ic">📷</span>Σάρωση</button>
+  <button class="tab" onclick="switchTab('view-dash',this)"><span class="ic">📋</span>Πίνακας</button>
+  <button class="tab" onclick="switchTab('view-history',this)"><span class="ic">🕓</span>Ιστορικό</button>
+  <button class="tab" onclick="switchTab('view-labels',this)"><span class="ic">🏷️</span>Ετικέτες</button>
+  <button class="tab" onclick="switchTab('view-admin',this)"><span class="ic">⚙️</span>Admin</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ ΡΥΘΜΙΣΕΙΣ ============
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEQnJMqG_PEn9CJcToIaZjIjc8qAzSCi4A6Y-GWphhg-42Nlb1245w4QfXuv1X4irHYw/exec";
+const API = "https://script.google.com/macros/s/AKfycbxEQnJMqG_PEn9CJcToIaZjIjc8qAzSCi4A6Y-GWphhg-42Nlb1245w4QfXuv1X4irHYw/exec";
 
-// ============ THEME ============
+// ── STATE ──
+let departments = [];
+let adminUnlocked = false;
+let scanning = false;
+let html5QrCode = null;
+let currentTag = null;
+let currentStatus = null;
+let dashDeptFilter = '';
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
+  departments = await fetchDepts();
+});
+
+// ── THEME ──
+function initTheme(){
+  if(localStorage.getItem('gt_theme')==='light'){document.body.classList.add('light');document.getElementById('themeBtn').textContent='☀️';}
+}
 function toggleTheme(){
   document.body.classList.toggle('light');
-  localStorage.setItem('gt_theme', document.body.classList.contains('light') ? 'light' : 'dark');
-  document.getElementById('themeBtn').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  localStorage.setItem('gt_theme',document.body.classList.contains('light')?'light':'dark');
+  document.getElementById('themeBtn').textContent=document.body.classList.contains('light')?'☀️':'🌙';
 }
-(function initTheme(){
-  if (localStorage.getItem('gt_theme') === 'light'){
-    document.body.classList.add('light');
-    document.getElementById('themeBtn').textContent = '☀️';
-  }
-})();
 
-// ============ TABS ============
-function switchTab(viewId, btn){
+// ── TABS ──
+function switchTab(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(viewId).classList.add('active');
+  document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (viewId === 'view-dash') loadDashboard();
+  if(id==='view-dash') loadDashboard();
+  if(id==='view-labels') refreshLabelDepts();
 }
 
-// ============ TOAST ============
+// ── TOAST ──
 function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2500);
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ============ BACKEND CALL ============
-async function gsPost(action, payload){
-  payload = payload || {};
-  payload.action = action;
-  const res = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
-  if (!json.success) throw new Error(json.error || 'Άγνωστο σφάλμα');
+// ── API ──
+async function gsPost(action,payload){
+  payload=payload||{};payload.action=action;
+  const res=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  const json=await res.json();
+  if(!json.success) throw new Error(json.error||'Σφάλμα backend');
   return json.data;
 }
 
-// ============ ΣΑΡΩΣΗ ============
-let html5QrCode = null;
-let scanning = false;
-
-function toggleScanner(){
-  if (scanning) stopScanner(); else startScanner();
+// ── DEPARTMENTS ──
+async function fetchDepts(){
+  try{ return await gsPost('getDepartments'); }catch(e){ toast('⚠️ '+e.message); return []; }
 }
 
+// ── SCANNER ──
+function toggleScanner(){
+  if(scanning) stopScanner(); else startScanner();
+}
 function startScanner(){
-  html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 240 },
-    (decodedText) => {
-      onTagScanned(decodedText);
-      stopScanner();
-    },
+  html5QrCode=new Html5Qrcode("reader");
+  html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:220},
+    (decoded)=>{ onTagScanned(decoded.trim()); stopScanner(); },
     ()=>{}
   ).then(()=>{
-    scanning = true;
-    document.getElementById('scanToggleBtn').textContent = '⏹️ Διακοπή Κάμερας';
-  }).catch(err=>{
-    toast('Σφάλμα κάμερας: ' + err);
-  });
+    scanning=true;
+    document.getElementById('scanBtn').textContent='⏹️ Διακοπή Κάμερας';
+  }).catch(e=>toast('Σφάλμα κάμερας: '+e));
 }
-
 function stopScanner(){
-  if (html5QrCode && scanning){
-    html5QrCode.stop().then(()=>{
-      scanning = false;
-      document.getElementById('scanToggleBtn').textContent = 'Έναρξη Κάμερας';
-    }).catch(()=>{});
+  if(html5QrCode&&scanning){
+    html5QrCode.stop().then(()=>{scanning=false;document.getElementById('scanBtn').textContent='📷 Έναρξη Κάμερας';}).catch(()=>{});
   }
 }
-
-function manualEntry(){
-  const tag = prompt('Εισάγετε κωδικό οργάνου (π.χ. GT-001):');
-  if (tag) onTagScanned(tag.trim());
+function manualTag(){
+  const tag=prompt('Εισάγετε TAG (π.χ. ΧΗΜ-1):');
+  if(tag) onTagScanned(tag.trim().toUpperCase());
 }
 
 async function onTagScanned(tag){
-  document.getElementById('fTag').value = tag;
-  document.getElementById('entryFormCard').style.display = 'block';
-  document.getElementById('statusPreview').innerHTML = 'Έλεγχος κατάστασης...';
-  document.getElementById('fOperator').value = '';
-  document.getElementById('fNotes').value = '';
+  currentTag=tag;
+  document.getElementById('fOperator').value='';
+  document.getElementById('fNotes').value='';
+  document.getElementById('scanResult').style.display='block';
+  document.getElementById('rTag').textContent=tag;
+  document.getElementById('rBadge').textContent='...';
+  document.getElementById('rSN').textContent='';
+  document.getElementById('rDept').innerHTML='';
+  document.getElementById('rLastEntry').textContent='';
+  document.getElementById('nextActionLabel').textContent='';
   try{
-    const st = await gsPost('getStatus', {tag});
-    let badge, label, nextAction;
-    if (st.status === 'ΜΕΣΑ'){
-      badge = 'st-inside'; label = 'ΜΕΣΑ (προς επισκευή)'; nextAction = 'Θα καταχωρηθεί ΕΞΟΔΟΣ';
-    } else if (st.status === 'ΕΞΩ'){
-      badge = 'st-outside'; label = 'ΕΞΩ'; nextAction = 'Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
+    const st = await gsPost('getStatus',{tag});
+    currentStatus=st;
+    // SN + dept
+    document.getElementById('rSN').textContent=st.sn?'S/N: '+st.sn:'S/N: —';
+    document.getElementById('rDept').innerHTML=st.department
+      ?`<span class="badge b-dept">${st.department}</span>`
+      :`<span style="font-size:11px;color:var(--red);">⚠️ Μη καταχωρημένο όργανο</span>`;
+    // Status badge
+    let bClass,bText,nextLabel;
+    if(st.status==='ΜΕΣΑ'){
+      bClass='b-inside';bText='ΜΕΣΑ';nextLabel='➡️ Θα καταχωρηθεί ΕΞΟΔΟΣ';
+    } else if(st.status==='ΕΞΩ'){
+      bClass='b-outside';bText='ΕΞΩ';nextLabel='➡️ Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
     } else {
-      badge = 'st-unknown'; label = 'Νέο όργανο'; nextAction = 'Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
+      bClass='b-new';bText='ΝΕΟ';nextLabel='➡️ Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
     }
-    document.getElementById('statusPreview').innerHTML =
-      `<span class="status-badge ${badge}">${label}</span><br><small style="color:var(--muted)">${nextAction}</small>`;
-    document.getElementById('entryFormTitle').textContent = nextAction;
-  }catch(err){
-    document.getElementById('statusPreview').innerHTML = '⚠️ ' + err.message;
+    const badge=document.getElementById('rBadge');
+    badge.textContent=bText;badge.className='badge '+bClass;
+    // Last entry info
+    if(st.lastType){
+      document.getElementById('rLastEntry').textContent=
+        'Τελευταία: '+st.lastType+' — '+st.lastDate+' '+st.lastTime+' ('+st.lastOperator+')';
+    }
+    document.getElementById('nextActionLabel').textContent=nextLabel;
+  }catch(e){
+    document.getElementById('rBadge').textContent='ERR';
+    toast('⚠️ '+e.message);
   }
 }
 
 async function submitEntry(){
-  const tag = document.getElementById('fTag').value.trim();
-  const operator = document.getElementById('fOperator').value.trim();
-  const notes = document.getElementById('fNotes').value.trim();
-  if (!tag) return toast('Λείπει το tag');
-  if (!operator) return toast('Γράψε όνομα χειριστή');
-  document.getElementById('submitBtn').textContent = 'Αποστολή...';
+  const tag=currentTag;
+  const operator=document.getElementById('fOperator').value.trim();
+  const notes=document.getElementById('fNotes').value.trim();
+  if(!operator){toast('Γράψε όνομα χειριστή');return;}
+  const btn=document.getElementById('submitBtn');
+  btn.textContent='Αποστολή...';btn.disabled=true;
   try{
-    const result = await gsPost('addEntry', {tag, operator, notes});
-    toast(`✅ ${result.type} καταχωρήθηκε (${result.ώρα})`);
-    cancelEntry();
-  }catch(err){
-    toast('⚠️ ' + err.message);
-  }finally{
-    document.getElementById('submitBtn').textContent = 'Καταχώρηση';
-  }
+    const r=await gsPost('addEntry',{tag,operator,notes});
+    toast(`✅ ${r.type} — ${tag} (${r.ώρα})`);
+    closeScanResult();
+  }catch(e){toast('⚠️ '+e.message);}
+  finally{btn.textContent='✅ Καταχώρηση';btn.disabled=false;}
 }
 
-function cancelEntry(){
-  document.getElementById('entryFormCard').style.display = 'none';
+function closeScanResult(){
+  document.getElementById('scanResult').style.display='none';
+  currentTag=null;currentStatus=null;
 }
 
-// ============ ΠΙΝΑΚΑΣ ============
+// ── DASHBOARD ──
 async function loadDashboard(){
-  const el = document.getElementById('dashList');
-  el.innerHTML = '<div class="empty">Φόρτωση...</div>';
+  const el=document.getElementById('dashList');
+  el.innerHTML='<div class="empty">Φόρτωση...</div>';
+  // Filter chips
+  const fc=document.getElementById('dashFilter');
+  fc.innerHTML='<button class="df-chip'+(dashDeptFilter===''?' active':'')+'" onclick="setDashFilter(\'\',this)">Όλα</button>';
+  departments.forEach(d=>{
+    fc.innerHTML+=`<button class="df-chip${dashDeptFilter===d?' active':''}" onclick="setDashFilter('${d}',this)">${d}</button>`;
+  });
   try{
-    const rows = await gsPost('getDashboard', {});
-    if (!rows.length){
-      el.innerHTML = '<div class="empty">Κανένα όργανο προς επισκευή αυτή τη στιγμή ✅</div>';
-      return;
-    }
-    el.innerHTML = rows.map(r=>{
-      const warn = r.ημέρες >= 15 ? 'warn' : '';
-      return `<div class="dash-item">
+    const rows=await gsPost('getDashboard',{department:dashDeptFilter});
+    if(!rows.length){el.innerHTML='<div class="empty">Κανένα όργανο προς επισκευή ✅</div>';return;}
+    el.innerHTML=rows.map(r=>`
+      <div class="dash-item">
         <div>
-          <div class="dash-tag">${r.tag}</div>
-          <div class="dash-sub">Είσοδος: ${r.ημερομηνία} ${r.ώρα} · ${r.χειριστής}</div>
-          ${r.σημειώσεις ? `<div class="dash-sub">📝 ${r.σημειώσεις}</div>` : ''}
+          <div class="dash-tag">${r.tag} ${r.sn?'<span class="dash-sn">'+r.sn+'</span>':''}</div>
+          ${r.department?`<span class="badge b-dept" style="font-size:10px;">${r.department}</span>`:''}
+          <div class="dash-sub">📅 ${r.ημερομηνία} ${r.ώρα} · 👤 ${r.χειριστής}</div>
+          ${r.σημειώσεις?`<div class="dash-sub">📝 ${r.σημειώσεις}</div>`:''}
         </div>
-        <div class="days-badge ${warn}">${r.ημέρες}ημ.</div>
-      </div>`;
-    }).join('');
-  }catch(err){
-    el.innerHTML = '⚠️ ' + err.message;
-  }
+        <div class="b-days${r.ημέρες>=10?' warn':''}">${r.ημέρες}η</div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty">⚠️ '+e.message+'</div>';}
 }
 
-// ============ ΙΣΤΟΡΙΚΟ ============
+function setDashFilter(dept,btn){
+  dashDeptFilter=dept;
+  document.querySelectorAll('.df-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  loadDashboard();
+}
+
+// ── HISTORY ──
 async function loadHistory(){
-  const tag = document.getElementById('histTag').value.trim();
-  const el = document.getElementById('histList');
-  if (!tag) return toast('Γράψε κωδικό οργάνου');
-  el.innerHTML = 'Φόρτωση...';
+  const tag=document.getElementById('histTag').value.trim();
+  if(!tag){toast('Γράψε TAG');return;}
+  const el=document.getElementById('histList');
+  const inf=document.getElementById('histInfo');
+  el.innerHTML='Φόρτωση...';inf.innerHTML='';
   try{
-    const rows = await gsPost('getHistory', {tag});
-    if (!rows.length){ el.innerHTML = '<div class="empty">Δεν βρέθηκαν καταχωρήσεις</div>'; return; }
-    el.innerHTML = rows.map(r=>{
-      const icon = r['τύπος'] === 'ΕΙΣΟΔΟΣ' ? '⬇️' : '⬆️';
-      return `<div class="hist-row">${icon} <b>${r['τύπος']}</b> — ${r.ημερομηνία} ${r.ώρα}
-        <div class="dash-sub">${r['χειριστής']}${r['σημειώσεις'] ? ' · 📝 '+r['σημειώσεις'] : ''}</div></div>`;
-    }).join('');
-  }catch(err){
-    el.innerHTML = '⚠️ ' + err.message;
-  }
+    const rows=await gsPost('getHistory',{tag});
+    // Show instrument info
+    const st=await gsPost('getStatus',{tag});
+    inf.innerHTML=`<div class="inst-card">
+      <div class="inst-row">
+        <div class="inst-tag">${tag}</div>
+        <span class="badge ${st.status==='ΜΕΣΑ'?'b-inside':st.status==='ΕΞΩ'?'b-outside':'b-new'}">${st.status}</span>
+      </div>
+      ${st.sn?`<div class="inst-sn">S/N: ${st.sn}</div>`:''}
+      ${st.department?`<span class="badge b-dept">${st.department}</span>`:''}
+    </div>`;
+    if(!rows.length){el.innerHTML='<div class="empty">Δεν βρέθηκαν καταχωρήσεις</div>';return;}
+    el.innerHTML=rows.map(r=>`
+      <div class="hist-row">
+        <span style="font-size:16px;">${r['τύπος']==='ΕΙΣΟΔΟΣ'?'⬇️':'⬆️'}</span>
+        <strong>${r['τύπος']}</strong> — ${r.ημερομηνία} ${r.ώρα}
+        <div class="dash-sub">👤 ${r['χειριστής']}${r['σημειώσεις']?' · 📝 '+r['σημειώσεις']:''}</div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='⚠️ '+e.message;}
 }
 
-// ============ ΕΤΙΚΕΤΕΣ QR ============
-function generateLabels(){
-  const prefix = document.getElementById('pPrefix').value.trim();
-  const start = parseInt(document.getElementById('pStart').value, 10);
-  const count = parseInt(document.getElementById('pCount').value, 10);
-  const area = document.getElementById('qrPrintArea');
-  area.innerHTML = '';
-  for (let i=0;i<count;i++){
-    const num = String(start+i).padStart(3,'0');
-    const tag = prefix + num;
-    const wrap = document.createElement('div');
-    wrap.className = 'qrLabel';
-    const qrDiv = document.createElement('div');
-    wrap.appendChild(qrDiv);
-    const label = document.createElement('div');
-    label.textContent = tag;
-    label.style.marginTop = '4px';
-    label.style.fontWeight = '700';
-    wrap.appendChild(label);
-    area.appendChild(wrap);
-    new QRCode(qrDiv, { text: tag, width: 100, height: 100 });
-  }
+// ── LABELS ──
+async function refreshLabelDepts(){
+  departments=await fetchDepts();
+  const sel=document.getElementById('labelDept');
+  sel.innerHTML='<option value="">-- Επιλέξτε τμήμα --</option>';
+  departments.forEach(d=>sel.innerHTML+=`<option>${d}</option>`);
+  document.getElementById('labelGrid').innerHTML='';
+  document.getElementById('labelInstCount').textContent='';
+}
+
+async function loadLabelInsts(){
+  const dept=document.getElementById('labelDept').value;
+  const grid=document.getElementById('labelGrid');
+  const cnt=document.getElementById('labelInstCount');
+  grid.innerHTML='';cnt.textContent='';
+  if(!dept) return;
+  cnt.textContent='Φόρτωση...';
+  try{
+    const insts=await gsPost('getInstruments',{department:dept});
+    cnt.textContent=insts.length+' όργανα στο τμήμα '+dept;
+    if(!insts.length){grid.innerHTML='<div class="empty">Δεν υπάρχουν όργανα σε αυτό το τμήμα</div>';return;}
+    insts.forEach(inst=>{
+      const wrap=document.createElement('div');
+      wrap.className='label-card';
+      const qrDiv=document.createElement('div');
+      const tagDiv=document.createElement('div');tagDiv.className='label-tag';tagDiv.textContent=inst.tag;
+      const snDiv=document.createElement('div');snDiv.className='label-sn';snDiv.textContent=inst.sn?'S/N: '+inst.sn:'';
+      const deptDiv=document.createElement('div');deptDiv.className='label-dept';deptDiv.textContent=inst.department;
+      wrap.appendChild(qrDiv);wrap.appendChild(tagDiv);
+      if(inst.sn) wrap.appendChild(snDiv);
+      wrap.appendChild(deptDiv);
+      grid.appendChild(wrap);
+      new QRCode(qrDiv,{text:inst.tag,width:90,height:90,correctLevel:QRCode.CorrectLevel.M});
+    });
+  }catch(e){cnt.textContent='⚠️ '+e.message;}
+}
+
+// ── ADMIN AUTH ──
+async function adminLogin(){
+  const p=document.getElementById('adminPassInput').value;
+  if(!p){toast('Εισάγετε κωδικό');return;}
+  try{
+    await gsPost('verifyAdmin',{password:p});
+    adminUnlocked=true;
+    document.getElementById('adminLock').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    loadAdminData();
+  }catch(e){toast('⚠️ '+e.message);document.getElementById('adminPassInput').value='';}
+}
+function adminLogout(){
+  adminUnlocked=false;
+  document.getElementById('adminLock').style.display='block';
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('adminPassInput').value='';
+}
+function switchAdminTab(id,btn){
+  ['aDepts','aInsts','aPass'].forEach(i=>{document.getElementById(i).style.display='none';});
+  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  btn.classList.add('active');
+  if(id==='aInsts') loadAdminInsts();
+}
+
+// ── ADMIN DATA ──
+async function loadAdminData(){
+  departments=await fetchDepts();
+  renderDeptChips();
+  refreshAdminSelects();
+}
+
+function renderDeptChips(){
+  const el=document.getElementById('deptChips');
+  el.innerHTML=departments.map(d=>
+    `<span class="dept-chip"><span>${d}</span><button class="del-btn" onclick="delDept('${d}')">✕</button></span>`
+  ).join('')||'<div class="empty">Δεν υπάρχουν τμήματα</div>';
+}
+
+function refreshAdminSelects(){
+  const opts=departments.map(d=>`<option>${d}</option>`).join('');
+  document.getElementById('instFilterDept').innerHTML='<option value="">Όλα</option>'+opts;
+  document.getElementById('newInstDept').innerHTML='<option value="">-- Επιλέξτε --</option>'+opts;
+  // Also labels
+  const labelSel=document.getElementById('labelDept');
+  if(labelSel) labelSel.innerHTML='<option value="">-- Επιλέξτε τμήμα --</option>'+opts;
+}
+
+async function addDept(){
+  const name=document.getElementById('newDeptName').value.trim();
+  if(!name){toast('Γράψε όνομα');return;}
+  try{
+    await gsPost('addDepartment',{name});
+    departments.push(name);
+    renderDeptChips();refreshAdminSelects();
+    document.getElementById('newDeptName').value='';
+    toast('✅ Τμήμα προστέθηκε: '+name);
+  }catch(e){toast('⚠️ '+e.message);}
+}
+
+async function delDept(name){
+  if(!confirm('Διαγραφή τμήματος "'+name+'";')) return;
+  try{
+    await gsPost('deleteDepartment',{name});
+    departments=departments.filter(d=>d!==name);
+    renderDeptChips();refreshAdminSelects();
+    toast('🗑️ '+name);
+  }catch(e){toast('⚠️ '+e.message);}
+}
+
+async function loadAdminInsts(){
+  const dept=document.getElementById('instFilterDept').value;
+  const el=document.getElementById('adminInstList');
+  el.innerHTML='Φόρτωση...';
+  try{
+    const insts=await gsPost('getInstruments',{department:dept});
+    if(!insts.length){el.innerHTML='<div class="empty">Δεν υπάρχουν όργανα</div>';return;}
+    el.innerHTML=insts.map(i=>`
+      <div class="inst-row-admin">
+        <div>
+          <strong>${i.tag}</strong><span style="font-size:11px;color:var(--muted);margin-left:8px;">${i.sn||'—'}</span>
+          <div style="font-size:11px;color:var(--muted);">${i.department}</div>
+        </div>
+        <button class="del-btn" onclick="delInst('${i.tag}')">🗑️</button>
+      </div>`).join('');
+  }catch(e){el.innerHTML='⚠️ '+e.message;}
+}
+
+async function addInst(){
+  const tag=document.getElementById('newInstTag').value.trim();
+  const sn=document.getElementById('newInstSN').value.trim();
+  const department=document.getElementById('newInstDept').value;
+  if(!tag||!department){toast('TAG και Τμήμα είναι υποχρεωτικά');return;}
+  try{
+    await gsPost('addInstrument',{tag,sn,department});
+    document.getElementById('newInstTag').value='';
+    document.getElementById('newInstSN').value='';
+    toast('✅ '+tag+' προστέθηκε');
+    loadAdminInsts();
+  }catch(e){toast('⚠️ '+e.message);}
+}
+
+async function delInst(tag){
+  if(!confirm('Διαγραφή οργάνου '+tag+';')) return;
+  try{
+    await gsPost('deleteInstrument',{tag});
+    toast('🗑️ '+tag);
+    loadAdminInsts();
+  }catch(e){toast('⚠️ '+e.message);}
+}
+
+async function doChangePass(){
+  const o=document.getElementById('cpOld').value;
+  const n=document.getElementById('cpNew').value;
+  const n2=document.getElementById('cpNew2').value;
+  if(n!==n2){toast('Οι νέοι κωδικοί δεν ταιριάζουν');return;}
+  try{
+    await gsPost('changePassword',{oldPass:o,newPass:n});
+    toast('✅ Κωδικός άλλαξε');
+    ['cpOld','cpNew','cpNew2'].forEach(id=>document.getElementById(id).value='');
+  }catch(e){toast('⚠️ '+e.message);}
 }
 </script>
 </body>
