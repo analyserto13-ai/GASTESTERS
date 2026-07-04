@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gas Testers Tracker</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#111418; --card:#1b1f26; --border:#2a2f38; --text:#e8eaed; --muted:#8a919c;
+    --accent:#3b82f6; --green:#22c55e; --orange:#f59e0b; --red:#ef4444;
+  }
+  body.light{
+    --bg:#f4f5f7; --card:#ffffff; --border:#dfe3e8; --text:#1a1d21; --muted:#5b6470;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);padding-bottom:80px;transition:background .2s,color .2s;}
+  header{padding:16px;display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;}
+  header h1{font-size:18px;margin:0;}
+  #themeBtn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;
+    padding:6px 10px;font-size:16px;}
+  main{padding:16px;max-width:520px;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .tabs{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);
+    border-top:1px solid var(--border);z-index:10;}
+  .tab{flex:1;padding:12px 4px;text-align:center;font-size:11px;color:var(--muted);
+    border:none;background:none;cursor:pointer;}
+  .tab.active{color:var(--accent);font-weight:600;}
+  .tab .ic{font-size:20px;display:block;}
+  .view{display:none;}
+  .view.active{display:block;}
+  button.primary{width:100%;padding:14px;font-size:16px;font-weight:600;border:none;border-radius:10px;
+    background:var(--accent);color:#fff;cursor:pointer;}
+  button.secondary{width:100%;padding:12px;font-size:14px;border:1px solid var(--border);border-radius:10px;
+    background:transparent;color:var(--text);cursor:pointer;margin-top:8px;}
+  input,textarea{width:100%;padding:12px;font-size:15px;border-radius:8px;border:1px solid var(--border);
+    background:var(--bg);color:var(--text);margin-bottom:10px;}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;}
+  #reader{width:100%;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+  .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .st-inside{background:rgba(245,158,11,.15);color:var(--orange);}
+  .st-outside{background:rgba(34,197,94,.15);color:var(--green);}
+  .st-unknown{background:rgba(139,146,156,.15);color:var(--muted);}
+  .dash-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;
+    border-bottom:1px solid var(--border);}
+  .dash-item:last-child{border-bottom:none;}
+  .dash-tag{font-weight:700;font-size:15px;}
+  .dash-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .days-badge{font-size:12px;padding:3px 8px;border-radius:6px;background:rgba(59,130,246,.15);color:var(--accent);}
+  .days-badge.warn{background:rgba(239,68,68,.15);color:var(--red);}
+  .hist-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .hist-row:last-child{border-bottom:none;}
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card);
+    border:1px solid var(--border);padding:10px 18px;border-radius:20px;font-size:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;}
+  .toast.show{opacity:1;}
+  #qrPrintArea{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+  .qrLabel{text-align:center;font-size:11px;border:1px dashed var(--border);padding:8px;border-radius:8px;}
+  h2{font-size:16px;margin:0 0 12px 0;}
+  .empty{text-align:center;color:var(--muted);padding:30px 0;font-size:14px;}
+  @media print{
+    header,.tabs,.card:not(.printable){display:none !important;}
+    body{background:#fff;color:#000;padding:0;}
+    #qrPrintArea{display:flex;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 Gas Testers</h1>
+  <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+</header>
+
+<main>
+
+  <!-- ΣΑΡΩΣΗ -->
+  <div class="view active" id="view-scan">
+    <div class="card">
+      <h2>Σάρωση QR</h2>
+      <div id="reader"></div>
+      <button class="primary" id="scanToggleBtn" onclick="toggleScanner()">Έναρξη Κάμερας</button>
+      <button class="secondary" onclick="manualEntry()">✍️ Χειροκίνητη καταχώρηση tag</button>
+    </div>
+
+    <div class="card" id="entryFormCard" style="display:none;">
+      <h2 id="entryFormTitle">Καταχώρηση</h2>
+      <label>Κωδικός οργάνου (TAG)</label>
+      <input id="fTag" readonly>
+      <div id="statusPreview" style="margin-bottom:10px;"></div>
+      <label>Όνομα χειριστή *</label>
+      <input id="fOperator" placeholder="π.χ. Παπαδόπουλος Γ.">
+      <label>Σημειώσεις (προαιρετικό)</label>
+      <textarea id="fNotes" rows="2" placeholder="π.χ. βλάβη αισθητήρα O2"></textarea>
+      <button class="primary" id="submitBtn" onclick="submitEntry()">Καταχώρηση</button>
+      <button class="secondary" onclick="cancelEntry()">Άκυρο</button>
+    </div>
+  </div>
+
+  <!-- ΠΙΝΑΚΑΣ -->
+  <div class="view" id="view-dash">
+    <div class="card">
+      <h2>Όργανα προς επισκευή/βαθμονόμηση</h2>
+      <div id="dashList"><div class="empty">Φόρτωση...</div></div>
+      <button class="secondary" onclick="loadDashboard()">🔄 Ανανέωση</button>
+    </div>
+  </div>
+
+  <!-- ΙΣΤΟΡΙΚΟ -->
+  <div class="view" id="view-history">
+    <div class="card">
+      <h2>Ιστορικό οργάνου</h2>
+      <label>Κωδικός οργάνου (TAG)</label>
+      <input id="histTag" placeholder="π.χ. GT-001">
+      <button class="primary" onclick="loadHistory()">Αναζήτηση</button>
+      <div id="histList" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ΕΚΤΥΠΩΣΗ QR -->
+  <div class="view" id="view-print">
+    <div class="card">
+      <h2>Δημιουργία ετικετών QR</h2>
+      <label>Πρόθεμα κωδικού</label>
+      <input id="pPrefix" value="GT-">
+      <label>Αριθμός έναρξης</label>
+      <input id="pStart" type="number" value="1">
+      <label>Πλήθος οργάνων</label>
+      <input id="pCount" type="number" value="10">
+      <button class="primary" onclick="generateLabels()">Δημιουργία</button>
+      <button class="secondary" onclick="window.print()">🖨️ Εκτύπωση</button>
+    </div>
+    <div class="card printable" id="qrPrintArea"></div>
+  </div>
+
+</main>
+
+<div class="tabs">
+  <button class="tab active" data-view="view-scan" onclick="switchTab('view-scan',this)">
+    <span class="ic">📷</span>Σάρωση</button>
+  <button class="tab" data-view="view-dash" onclick="switchTab('view-dash',this)">
+    <span class="ic">📋</span>Πίνακας</button>
+  <button class="tab" data-view="view-history" onclick="switchTab('view-history',this)">
+    <span class="ic">🕓</span>Ιστορικό</button>
+  <button class="tab" data-view="view-print" onclick="switchTab('view-print',this)">
+    <span class="ic">🏷️</span>Ετικέτες</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ ΡΥΘΜΙΣΕΙΣ ============
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEQnJMqG_PEn9CJcToIaZjIjc8qAzSCi4A6Y-GWphhg-42Nlb1245w4QfXuv1X4irHYw/exec";
+
+// ============ THEME ============
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  localStorage.setItem('gt_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+}
+(function initTheme(){
+  if (localStorage.getItem('gt_theme') === 'light'){
+    document.body.classList.add('light');
+    document.getElementById('themeBtn').textContent = '☀️';
+  }
+})();
+
+// ============ TABS ============
+function switchTab(viewId, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  btn.classList.add('active');
+  if (viewId === 'view-dash') loadDashboard();
+}
+
+// ============ TOAST ============
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ============ BACKEND CALL ============
+async function gsPost(action, payload){
+  payload = payload || {};
+  payload.action = action;
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Άγνωστο σφάλμα');
+  return json.data;
+}
+
+// ============ ΣΑΡΩΣΗ ============
+let html5QrCode = null;
+let scanning = false;
+
+function toggleScanner(){
+  if (scanning) stopScanner(); else startScanner();
+}
+
+function startScanner(){
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 240 },
+    (decodedText) => {
+      onTagScanned(decodedText);
+      stopScanner();
+    },
+    ()=>{}
+  ).then(()=>{
+    scanning = true;
+    document.getElementById('scanToggleBtn').textContent = '⏹️ Διακοπή Κάμερας';
+  }).catch(err=>{
+    toast('Σφάλμα κάμερας: ' + err);
+  });
+}
+
+function stopScanner(){
+  if (html5QrCode && scanning){
+    html5QrCode.stop().then(()=>{
+      scanning = false;
+      document.getElementById('scanToggleBtn').textContent = 'Έναρξη Κάμερας';
+    }).catch(()=>{});
+  }
+}
+
+function manualEntry(){
+  const tag = prompt('Εισάγετε κωδικό οργάνου (π.χ. GT-001):');
+  if (tag) onTagScanned(tag.trim());
+}
+
+async function onTagScanned(tag){
+  document.getElementById('fTag').value = tag;
+  document.getElementById('entryFormCard').style.display = 'block';
+  document.getElementById('statusPreview').innerHTML = 'Έλεγχος κατάστασης...';
+  document.getElementById('fOperator').value = '';
+  document.getElementById('fNotes').value = '';
+  try{
+    const st = await gsPost('getStatus', {tag});
+    let badge, label, nextAction;
+    if (st.status === 'ΜΕΣΑ'){
+      badge = 'st-inside'; label = 'ΜΕΣΑ (προς επισκευή)'; nextAction = 'Θα καταχωρηθεί ΕΞΟΔΟΣ';
+    } else if (st.status === 'ΕΞΩ'){
+      badge = 'st-outside'; label = 'ΕΞΩ'; nextAction = 'Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
+    } else {
+      badge = 'st-unknown'; label = 'Νέο όργανο'; nextAction = 'Θα καταχωρηθεί ΕΙΣΟΔΟΣ';
+    }
+    document.getElementById('statusPreview').innerHTML =
+      `<span class="status-badge ${badge}">${label}</span><br><small style="color:var(--muted)">${nextAction}</small>`;
+    document.getElementById('entryFormTitle').textContent = nextAction;
+  }catch(err){
+    document.getElementById('statusPreview').innerHTML = '⚠️ ' + err.message;
+  }
+}
+
+async function submitEntry(){
+  const tag = document.getElementById('fTag').value.trim();
+  const operator = document.getElementById('fOperator').value.trim();
+  const notes = document.getElementById('fNotes').value.trim();
+  if (!tag) return toast('Λείπει το tag');
+  if (!operator) return toast('Γράψε όνομα χειριστή');
+  document.getElementById('submitBtn').textContent = 'Αποστολή...';
+  try{
+    const result = await gsPost('addEntry', {tag, operator, notes});
+    toast(`✅ ${result.type} καταχωρήθηκε (${result.ώρα})`);
+    cancelEntry();
+  }catch(err){
+    toast('⚠️ ' + err.message);
+  }finally{
+    document.getElementById('submitBtn').textContent = 'Καταχώρηση';
+  }
+}
+
+function cancelEntry(){
+  document.getElementById('entryFormCard').style.display = 'none';
+}
+
+// ============ ΠΙΝΑΚΑΣ ============
+async function loadDashboard(){
+  const el = document.getElementById('dashList');
+  el.innerHTML = '<div class="empty">Φόρτωση...</div>';
+  try{
+    const rows = await gsPost('getDashboard', {});
+    if (!rows.length){
+      el.innerHTML = '<div class="empty">Κανένα όργανο προς επισκευή αυτή τη στιγμή ✅</div>';
+      return;
+    }
+    el.innerHTML = rows.map(r=>{
+      const warn = r.ημέρες >= 15 ? 'warn' : '';
+      return `<div class="dash-item">
+        <div>
+          <div class="dash-tag">${r.tag}</div>
+          <div class="dash-sub">Είσοδος: ${r.ημερομηνία} ${r.ώρα} · ${r.χειριστής}</div>
+          ${r.σημειώσεις ? `<div class="dash-sub">📝 ${r.σημειώσεις}</div>` : ''}
+        </div>
+        <div class="days-badge ${warn}">${r.ημέρες}ημ.</div>
+      </div>`;
+    }).join('');
+  }catch(err){
+    el.innerHTML = '⚠️ ' + err.message;
+  }
+}
+
+// ============ ΙΣΤΟΡΙΚΟ ============
+async function loadHistory(){
+  const tag = document.getElementById('histTag').value.trim();
+  const el = document.getElementById('histList');
+  if (!tag) return toast('Γράψε κωδικό οργάνου');
+  el.innerHTML = 'Φόρτωση...';
+  try{
+    const rows = await gsPost('getHistory', {tag});
+    if (!rows.length){ el.innerHTML = '<div class="empty">Δεν βρέθηκαν καταχωρήσεις</div>'; return; }
+    el.innerHTML = rows.map(r=>{
+      const icon = r['τύπος'] === 'ΕΙΣΟΔΟΣ' ? '⬇️' : '⬆️';
+      return `<div class="hist-row">${icon} <b>${r['τύπος']}</b> — ${r.ημερομηνία} ${r.ώρα}
+        <div class="dash-sub">${r['χειριστής']}${r['σημειώσεις'] ? ' · 📝 '+r['σημειώσεις'] : ''}</div></div>`;
+    }).join('');
+  }catch(err){
+    el.innerHTML = '⚠️ ' + err.message;
+  }
+}
+
+// ============ ΕΤΙΚΕΤΕΣ QR ============
+function generateLabels(){
+  const prefix = document.getElementById('pPrefix').value.trim();
+  const start = parseInt(document.getElementById('pStart').value, 10);
+  const count = parseInt(document.getElementById('pCount').value, 10);
+  const area = document.getElementById('qrPrintArea');
+  area.innerHTML = '';
+  for (let i=0;i<count;i++){
+    const num = String(start+i).padStart(3,'0');
+    const tag = prefix + num;
+    const wrap = document.createElement('div');
+    wrap.className = 'qrLabel';
+    const qrDiv = document.createElement('div');
+    wrap.appendChild(qrDiv);
+    const label = document.createElement('div');
+    label.textContent = tag;
+    label.style.marginTop = '4px';
+    label.style.fontWeight = '700';
+    wrap.appendChild(label);
+    area.appendChild(wrap);
+    new QRCode(qrDiv, { text: tag, width: 100, height: 100 });
+  }
+}
+</script>
+</body>
+</html>
