@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Gas Testers</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 :root{
   --bg:#0f1117;--card:#1a1d27;--card2:#22263a;--border:#2d3248;
@@ -687,6 +687,7 @@ async function loadLabelInsts(){
     const insts=await gsPost('getInstruments',{department:dept});
     cnt.textContent=insts.length+' όργανα — '+dept;
     if(!insts.length){grid.innerHTML='<div class="empty">Δεν υπάρχουν όργανα</div>';return;}
+    insts.sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true,sensitivity:'base'}));
     insts.forEach(inst=>{
       const wrap=document.createElement('div');wrap.className='lcard';
       const qrDiv=document.createElement('div');
@@ -697,7 +698,9 @@ async function loadLabelInsts(){
       if(inst.sn)wrap.appendChild(snDiv);
       wrap.appendChild(deptDiv);
       grid.appendChild(wrap);
-      new QRCode(qrDiv,{text:inst.tag,width:90,height:90,correctLevel:QRCode.CorrectLevel.M});
+      const c1 = document.createElement('canvas');
+      qrDiv.appendChild(c1);
+      QRCode.toCanvas(c1, inst.tag, {width:100, margin:1, errorCorrectionLevel:'M'});
     });
   }catch(e){cnt.textContent='⚠️ '+e.message;}
 }
@@ -710,7 +713,9 @@ function addSingleLabel(){
   const tagDiv=document.createElement('div');tagDiv.className='lcard-tag';tagDiv.textContent=tag;
   wrap.appendChild(qrDiv);wrap.appendChild(tagDiv);
   grid.insertBefore(wrap,grid.firstChild);
-  new QRCode(qrDiv,{text:tag,width:90,height:90,correctLevel:QRCode.CorrectLevel.M});
+  const c2 = document.createElement('canvas');
+  qrDiv.appendChild(c2);
+  QRCode.toCanvas(c2, tag, {width:100, margin:1, errorCorrectionLevel:'M'});
   document.getElementById('singleTagInput').value='';
   toast('✅ '+tag);
 }
@@ -773,6 +778,7 @@ async function loadAdminInsts(){
   try{
     const insts=await gsPost('getInstruments',{department:dept});
     if(!insts.length){el.innerHTML='<div class="empty">Δεν υπάρχουν όργανα</div>';return;}
+    insts.sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true,sensitivity:'base'}));
     el.innerHTML=insts.map(i=>`
       <div class="iadmin-row">
         <div><strong>${i.tag}</strong>
