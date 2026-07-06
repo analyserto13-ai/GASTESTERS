@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Gas Testers</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
 :root{
   --bg:#0f1117;--card:#1a1d27;--card2:#22263a;--border:#2d3248;
@@ -698,9 +698,17 @@ async function loadLabelInsts(){
       if(inst.sn)wrap.appendChild(snDiv);
       wrap.appendChild(deptDiv);
       grid.appendChild(wrap);
-      const c1 = document.createElement('canvas');
-      qrDiv.appendChild(c1);
-      QRCode.toCanvas(c1, inst.tag, {width:100, margin:1, errorCorrectionLevel:'M'});
+      (function(tag, div){
+        try{
+          const qr = qrcode(0, 'M');
+          qr.addData(tag);
+          qr.make();
+          const img = document.createElement('img');
+          img.src = qr.createDataURL(3, 0);
+          img.style.width='96px'; img.style.height='96px';
+          div.appendChild(img);
+        }catch(e){ div.textContent='QR err'; }
+      })(inst.tag, qrDiv);
     });
   }catch(e){cnt.textContent='⚠️ '+e.message;}
 }
@@ -713,9 +721,15 @@ function addSingleLabel(){
   const tagDiv=document.createElement('div');tagDiv.className='lcard-tag';tagDiv.textContent=tag;
   wrap.appendChild(qrDiv);wrap.appendChild(tagDiv);
   grid.insertBefore(wrap,grid.firstChild);
-  const c2 = document.createElement('canvas');
-  qrDiv.appendChild(c2);
-  QRCode.toCanvas(c2, tag, {width:100, margin:1, errorCorrectionLevel:'M'});
+  try{
+    const qr2 = qrcode(0, 'M');
+    qr2.addData(tag);
+    qr2.make();
+    const img2 = document.createElement('img');
+    img2.src = qr2.createDataURL(3, 0);
+    img2.style.width='96px'; img2.style.height='96px';
+    qrDiv.appendChild(img2);
+  }catch(e){ qrDiv.textContent='QR err'; }
   document.getElementById('singleTagInput').value='';
   toast('✅ '+tag);
 }
