@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Gas Testers</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 <style>
 :root{
@@ -852,19 +853,25 @@ async function deleteAdminEntry(id, tag){
   }catch(e){toast('⚠️ '+e.message);}
 }
 
-// ── QR GENERATION via API (handles Greek UTF-8 perfectly) ──
+// ── QR GENERATION via QRious (canvas, no network, handles UTF-8) ──
 function makeQR(tag, container){
-  const img = document.createElement('img');
-  img.style.width = '100px';
-  img.style.height = '100px';
-  img.style.display = 'block';
-  img.style.margin = '0 auto';
-  img.alt = tag;
-  img.onerror = function(){ container.textContent = '⚠️ QR error'; };
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?data='
-    + encodeURIComponent(tag)
-    + '&size=150x150&charset-source=UTF-8&ecc=M&margin=1';
-  container.appendChild(img);
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.style.display = 'block';
+    canvas.style.margin = '0 auto';
+    container.appendChild(canvas);
+    new QRious({
+      element: canvas,
+      value: tag,
+      size: 200,
+      level: 'M',
+      background: '#ffffff',
+      foreground: '#000000',
+      padding: 4
+    });
+  } catch(e) {
+    container.innerHTML = '<div style="color:red;font-size:11px;">⚠️ ' + e.message + '</div>';
+  }
 }
 </script>
 </body>
