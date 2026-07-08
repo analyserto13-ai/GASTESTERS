@@ -361,6 +361,7 @@ let pendingTagFromUrl = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
+  warmUpBackend(); // Ξεκινά αμέσως async χωρίς να περιμένει
   departments = await fetchDepts();
   populateDeptSelects();
 
@@ -410,10 +411,26 @@ function toast(msg){
 // ── API ──
 async function gsPost(action,payload){
   payload=payload||{};payload.action=action;
-  const res=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
-  const json=await res.json();
-  if(!json.success) throw new Error(json.error||'Σφάλμα backend');
-  return json.data;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),8000);
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload),signal:controller.signal});
+    const json=await res.json();
+    if(!json.success) throw new Error(json.error||'Σφάλμα backend');
+    return json.data;
+  }catch(e){
+    if(e.name==='AbortError') throw new Error('Timeout — δοκίμασε ξανά');
+    throw e;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+// Pre-warm Apps Script (αποφεύγει cold start στο πρώτο σκαν)
+function warmUpBackend(){
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action:'getDepartments'})}).catch(()=>{});
 }
 
 // ── DEPTS ──
@@ -470,7 +487,7 @@ function startScanner(){
       if(scanCooldown) return;
       scanCooldown=true;
       await processTag(decoded.trim());
-      setTimeout(()=>{scanCooldown=false;},1800);
+      setTimeout(()=>{scanCooldown=false;},1200);
     },
     ()=>{}
   ).then(()=>{
@@ -524,7 +541,7 @@ async function processTag(raw){
     if(navigator.vibrate) navigator.vibrate([40,20,80]);
     el.scrollIntoView({behavior:'smooth', block:'start'});
     // Pause scanner briefly so result is readable - auto-resumes after 3s
-    if(scanning){ stopScanner(); setTimeout(()=>{ startScanner(); },3000); }
+    if(scanning){ stopScanner(); setTimeout(()=>{ startScanner(); },1500); }
   }catch(e){
     el.innerHTML=`<div class="rcard" style="border:2px solid var(--red);text-align:center;padding:20px;background:rgba(239,68,68,.08);">
       <div style="font-size:32px;">❌</div>
