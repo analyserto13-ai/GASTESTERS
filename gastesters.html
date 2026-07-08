@@ -735,6 +735,7 @@ async function loadLabelInsts(){
     const insts=await gsPost('getInstruments',{department:dept});
     cnt.textContent=insts.length+' όργανα — '+dept;
     if(!insts.length){grid.innerHTML='<div class="empty">Δεν υπάρχουν όργανα</div>';return;}
+    if(!Array.isArray(insts)) insts = [];
     insts.sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true,sensitivity:'base'}));
     insts.forEach(inst=>{
       const wrap=document.createElement('div');wrap.className='lcard';
@@ -822,6 +823,7 @@ async function loadAdminInsts(){
   try{
     const insts=await gsPost('getInstruments',{department:dept});
     if(!insts.length){el.innerHTML='<div class="empty">Δεν υπάρχουν όργανα</div>';return;}
+    if(!Array.isArray(insts)) insts = [];
     insts.sort((a,b)=>a.tag.localeCompare(b.tag,undefined,{numeric:true,sensitivity:'base'}));
     el.innerHTML=insts.map(i=>`
       <div class="iadmin-row">
