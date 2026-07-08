@@ -170,11 +170,16 @@ select option{background:var(--card);}
 <div class="view active" id="view-scan">
   <!-- Βήμα 1: Όνομα -->
   <div class="card" id="nameStep">
+    <div id="pendingNotice" style="display:none;background:rgba(79,124,255,.12);border:1px solid var(--accent);
+      border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;">
+      📡 Σκανάρισες: <strong id="pendingNoticeTag"></strong><br>
+      <span style="color:var(--muted);">Γράψε το όνομά σου για καταχώρηση</span>
+    </div>
     <h2>Ποιος είστε;</h2>
     <label>Γράψτε το όνομά σας</label>
     <input id="operatorInput" placeholder="Ονοματεπώνυμο" autocomplete="off"
       oninput="checkNameReady()" onkeydown="if(event.key==='Enter')startSession()">
-    <button class="btn btn-primary" id="startBtn" onclick="startSession()" disabled>📷 Έναρξη σάρωσης</button>
+    <button class="btn btn-primary" id="startBtn" onclick="startSession()" disabled>✅ Καταχώρηση</button>
   </div>
 
   <!-- Βήμα 2: Σάρωση -->
@@ -351,10 +356,24 @@ let operatorName = '';
 let scanCooldown = false;
 
 // ── INIT ──
+let pendingTagFromUrl = null;
+
 window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   departments = await fetchDepts();
   populateDeptSelects();
+
+  // Αν το URL έχει ?tag=ΧΗΜ-1, ανοίγει η εφαρμογή έτοιμη για καταχώρηση
+  const urlParams = new URLSearchParams(window.location.search);
+  const tagParam = urlParams.get('tag');
+  if (tagParam) {
+    pendingTagFromUrl = decodeURIComponent(tagParam);
+    // Καθαρισμός URL χωρίς reload
+    history.replaceState({}, '', window.location.pathname);
+    // Εμφάνιση notice στη φόρμα ονόματος
+    document.getElementById('pendingNotice').style.display = 'block';
+    document.getElementById('pendingNoticeTag').textContent = pendingTagFromUrl;
+  }
 });
 
 // ── THEME ──
@@ -425,6 +444,12 @@ function startSession(){
   document.getElementById('shownName').textContent=operatorName;
   document.getElementById('sessionCard').style.display='none';
   document.getElementById('resultCard').style.display='none';
+  // Αν ήρθε από QR scan, καταχώρησε αυτόματα
+  if(pendingTagFromUrl){
+    const tag = pendingTagFromUrl;
+    pendingTagFromUrl = null;
+    processTag(tag);
+  }
 }
 function endSession(){
   stopScanner();
@@ -853,16 +878,19 @@ async function deleteAdminEntry(id, tag){
   }catch(e){toast('⚠️ '+e.message);}
 }
 
-// ── QR GENERATION via QRious (canvas, no network, handles UTF-8) ──
+// ── QR GENERATION via QRious — encodes URL for direct app open ──
+const APP_URL = 'https://analyserto13-ai.github.io/GASTESTERS/gastesters.html';
+
 function makeQR(tag, container){
   try {
+    const url = APP_URL + '?tag=' + encodeURIComponent(tag);
     const canvas = document.createElement('canvas');
     canvas.style.display = 'block';
     canvas.style.margin = '0 auto';
     container.appendChild(canvas);
     new QRious({
       element: canvas,
-      value: tag,
+      value: url,
       size: 200,
       level: 'M',
       background: '#ffffff',
