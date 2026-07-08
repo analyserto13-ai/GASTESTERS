@@ -469,7 +469,7 @@ function startScanner(){
     async(decoded)=>{
       if(scanCooldown) return;
       scanCooldown=true;
-      await processTag(decoded.trim().toUpperCase());
+      await processTag(decoded.trim());
       setTimeout(()=>{scanCooldown=false;},1800);
     },
     ()=>{}
@@ -490,17 +490,17 @@ function stopScanner(){
 }
 function manualTag(){
   const tag=prompt('TAG οργάνου:');
-  if(tag) processTag(tag.trim().toUpperCase());
+  if(tag) processTag(tag.trim());
 }
 
 function extractTag(raw){
   // Αν ο scanner διαβάσει URL, εξάγει μόνο το ?tag=
   try {
     const url = new URL(raw);
-    const t = url.searchParams.get('tag');
-    if(t) return decodeURIComponent(t);
+    const t = url.searchParams.get('tag') || url.searchParams.get('TAG');
+    if(t) return decodeURIComponent(t).toUpperCase();
   } catch(e){}
-  return raw.trim();
+  return raw.trim().toUpperCase(); // Plain tag → uppercase
 }
 
 async function processTag(raw){
