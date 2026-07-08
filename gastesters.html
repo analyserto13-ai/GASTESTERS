@@ -128,12 +128,13 @@ select option{background:var(--card);}
 .lock .lock-ic{font-size:48px;margin-bottom:12px;}
 
 /* ── LABELS ── */
-.lcard{background:#fff;border:1.5px solid #ccc;border-radius:8px;padding:10px;
-  width:130px;text-align:center;break-inside:avoid;}
+.lcard{background:#fff;border:1.5px solid #ccc;border-radius:8px;padding:8px;
+  width:160px;text-align:center;break-inside:avoid;display:inline-block;}
+.lcard canvas{max-width:100%!important;height:auto!important;}
 .lcard-tag{font-size:13px;font-weight:800;color:#000;margin-top:6px;line-height:1.2;}
 .lcard-sn{font-size:10px;color:#555;margin-top:2px;}
 .lcard-dept{font-size:10px;color:#2255cc;font-weight:600;margin-top:2px;}
-.lgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 0;}
+.lgrid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 0;}
 
 /* ── DEPT FILTER CHIPS ── */
 .dept-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
@@ -492,7 +493,18 @@ function manualTag(){
   if(tag) processTag(tag.trim().toUpperCase());
 }
 
-async function processTag(tag){
+function extractTag(raw){
+  // Αν ο scanner διαβάσει URL, εξάγει μόνο το ?tag=
+  try {
+    const url = new URL(raw);
+    const t = url.searchParams.get('tag');
+    if(t) return decodeURIComponent(t);
+  } catch(e){}
+  return raw.trim();
+}
+
+async function processTag(raw){
+  const tag = extractTag(raw);
   if(navigator.vibrate) navigator.vibrate(60);
   toast('📡 Σκανάρισμα: ' + tag);
   const el=document.getElementById('resultCard');
@@ -502,6 +514,7 @@ async function processTag(tag){
     <div style="font-weight:700;margin-top:8px;">${tag}</div>
     <div style="font-size:12px;color:var(--muted);">Καταχώρηση...</div>
   </div>`;
+  // Scroll αμέσως
   // Scroll αμέσως για να φαίνεται το αποτέλεσμα
   el.scrollIntoView({behavior:'smooth', block:'start'});
   try{
@@ -891,11 +904,11 @@ function makeQR(tag, container){
     new QRious({
       element: canvas,
       value: url,
-      size: 200,
+      size: 140,
       level: 'M',
       background: '#ffffff',
       foreground: '#000000',
-      padding: 4
+      padding: 2
     });
   } catch(e) {
     container.innerHTML = '<div style="color:red;font-size:11px;">⚠️ ' + e.message + '</div>';
