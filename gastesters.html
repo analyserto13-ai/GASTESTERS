@@ -409,6 +409,8 @@ function toast(msg){
 }
 
 // ── API ──
+// Ενέργειες που είναι ασφαλές να ξαναγίνουν αυτόματα σε timeout (μόνο ανάγνωση/idempotent)
+const RETRYABLE_ACTIONS = new Set(['getStatus','getDashboard','getDeptStatus','getHistory','getDepartments','getInstruments','verifyAdmin']);
 async function gsPost(action, payload, attempt=1){
   payload=payload||{}; payload.action=action;
   const controller=new AbortController();
@@ -421,12 +423,12 @@ async function gsPost(action, payload, attempt=1){
     return json.data;
   }catch(e){
     if(e.name==='AbortError'){
-      if(attempt===1){
-        // Αυτόματη επανάληψη μία φορά
+      if(attempt===1 && RETRYABLE_ACTIONS.has(action)){
+        // Αυτόματη επανάληψη μόνο για ασφαλείς (μη-καταστροφικές) ενέργειες
         toast('⏳ Αργεί, επανάληψη...');
         return gsPost(action, payload, 2);
       }
-      throw new Error('Δεν απαντά ο server — έλεγξε σύνδεση');
+      throw new Error('Δεν απαντά ο server — έλεγξε αν καταχωρήθηκε πριν ξαναδοκιμάσεις');
     }
     throw e;
   }finally{
